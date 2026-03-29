@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SenseIQ — IoT Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ── Animated Background ── -->
+  <div class="bg-wrap">
+    <canvas id="bgCanvas"></canvas>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="noise"></div>
+  </div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-gem">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">SenseIQ</div>
+        <div class="logo-tag">IoT Platform</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">MAIN</div>
+      <a href="#" class="nav-item active">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </span>
+        Overview
+        <span class="nav-active-bar"></span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        Live Feed
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </span>
+        Sensors
+      </a>
+      <div class="nav-section-label" style="margin-top:8px">REPORTS</div>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </span>
+        Analytics
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </span>
+        Reports
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="conn-card" id="connCard">
+        <div class="conn-dot" id="connDot"></div>
+        <div class="conn-info">
+          <div class="conn-label">Connection</div>
+          <div class="conn-state" id="connLabel">Connecting…</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main Panel ── -->
+  <div class="panel">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Dashboard <span class="title-accent">Overview</span></h1>
+        <p class="page-sub">Real-time sensor telemetry &amp; analytics</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-clock">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="clock">--:--:--</span>
+        </div>
+        <div class="live-badge" id="liveBadge">
+          <span class="live-ring" id="liveRing"></span>
+          <span id="statusText">Connecting</span>
+        </div>
+        <div class="refresh-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin-icon"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          2s
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- KPI Row -->
+      <div class="kpi-row">
+
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-glow"></div>
+          <div class="kpi-top">
+            <div class="kpi-icon-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="kpi-chip">All time</span>
+          </div>
+          <div class="kpi-val" id="totalDetections"><span class="val">—</span></div>
+          <div class="kpi-label">Total Detections</div>
+          <div class="kpi-sub" id="totalDelta">Loading…</div>
+        </div>
+
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-glow"></div>
+          <div class="kpi-top">
+            <div class="kpi-icon-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <span class="kpi-chip">Timestamp</span>
+          </div>
+          <div class="kpi-val kpi-val--md" id="latestTime"><span class="val">—</span></div>
+          <div class="kpi-label">Latest Detection</div>
+          <div class="kpi-sub" id="latestDate">Loading…</div>
+        </div>
+
+        <div class="kpi-card kpi-teal">
+          <div class="kpi-glow"></div>
+          <div class="kpi-top">
+            <div class="kpi-icon-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <span class="kpi-chip">Active</span>
+          </div>
+          <div class="kpi-val kpi-val--md" id="lastSensor"><span class="val">—</span></div>
+          <div class="kpi-label">Last Sensor ID</div>
+          <div class="kpi-sub" id="sensorStatus">Awaiting data…</div>
+        </div>
+
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-glow"></div>
+          <div class="kpi-top">
+            <div class="kpi-icon-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <span class="kpi-chip">Recent</span>
+          </div>
+          <div class="kpi-val" id="recentCount"><span class="val">—</span></div>
+          <div class="kpi-label">Last 60 Seconds</div>
+          <div class="kpi-sub" id="recentDelta">Loading…</div>
+        </div>
+
+      </div>
+
+      <!-- Chart + Feed -->
+      <div class="lower-row">
+
+        <div class="glass-card chart-card">
+          <div class="glass-head">
+            <div class="glass-title">
+              <span class="glass-dot blue-dot"></span>
+              Detection Timeline
+            </div>
+            <div class="chart-meta">Events / interval</div>
+          </div>
+          <div class="chart-body">
+            <canvas id="detectionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card feed-card">
+          <div class="glass-head">
+            <div class="glass-title">
+              <span class="glass-dot green-dot pulse-dot"></span>
+              Live Feed
+            </div>
+            <span class="feed-pill" id="feedCount">0 records</span>
+          </div>
+          <div class="feed-scroll" id="feedList">
+            <div class="feed-empty">
+              <div class="feed-empty-icon">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              Waiting for data stream…
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="toastMsg">Connection error</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
