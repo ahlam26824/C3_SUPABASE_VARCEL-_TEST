@@ -2,12 +2,21 @@
    SenseIQ IoT Dashboard — script.js
    ============================================================
    Replace SUPABASE_URL and SUPABASE_ANON_KEY with your values.
-   ============================================================ */
+   ============================================================ 
+   const CONFIG = {
+  SUPABASE_URL: 'https://darlrsjmdvyahmteihtl.supabase.co', // remove /rest/v1/sensor_dataL
+  SUPABASE_ANON_KEY: 'YOUR_KEY',
+  TABLE: 'sensor_data', // your actual table name in Supabase
+};
+   
+   
+   
+   */
 
 const CONFIG = {
-  SUPABASE_URL:      'https://darlrsjmdvyahmteihtl.supabase.co/rest/v1/sensor_dataL',
+  SUPABASE_URL: 'https://darlrsjmdvyahmteihtl.supabase.co', // remove /rest/v1/sensor_dataL
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhcmxyc2ptZHZ5YWhtdGVpaHRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODEzMDMsImV4cCI6MjA5MDM1NzMwM30.BdMKmcCPU4owoSB8RHOXOy_Vd1cAw41hg3KlSMFbD84',
-  TABLE:             'sensor_data',
+  TABLE: 'sensor_data', // your actual table name in Supabase
   REFRESH_MS:        2000,
   FEED_LIMIT:        50,
   CHART_POINTS:      20,
