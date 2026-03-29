@@ -1,22 +1,13 @@
 /* ============================================================
    SenseIQ IoT Dashboard — script.js
    ============================================================
-   Replace SUPABASE_URL and SUPABASE_ANON_KEY with your values.
-   ============================================================ 
-   const CONFIG = {
-  SUPABASE_URL: 'https://darlrsjmdvyahmteihtl.supabase.co', // remove /rest/v1/sensor_dataL
-  SUPABASE_ANON_KEY: 'YOUR_KEY',
-  TABLE: 'sensor_data', // your actual table name in Supabase
-};
-   
-   
-   
-   */
+   Updated to use your Supabase project and anon key
+   ============================================================ */
 
 const CONFIG = {
-  SUPABASE_URL: 'https://darlrsjmdvyahmteihtl.supabase.co', // remove /rest/v1/sensor_dataL
+  SUPABASE_URL:      'https://darlrsjmdvyahmteihtl.supabase.co', // Root URL only
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhcmxyc2ptZHZ5YWhtdGVpaHRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODEzMDMsImV4cCI6MjA5MDM1NzMwM30.BdMKmcCPU4owoSB8RHOXOy_Vd1cAw41hg3KlSMFbD84',
-  TABLE: 'sensor_data', // your actual table name in Supabase
+  TABLE:             'sensor_data',
   REFRESH_MS:        2000,
   FEED_LIMIT:        50,
   CHART_POINTS:      20,
@@ -59,7 +50,7 @@ const dom = {
 (function initBg() {
   const canvas = $('bgCanvas');
   const ctx    = canvas.getContext('2d');
-  let W, H, particles = [], lines = [];
+  let W, H, particles = [];
 
   const COLORS = ['#4f9eff', '#b06ef3', '#00e5c3', '#f953c6', '#ff8c42'];
 
@@ -128,7 +119,6 @@ const dom = {
       ctx.fillStyle = p.col + Math.floor(p.alpha * 255).toString(16).padStart(2, '0');
       ctx.fill();
 
-      // soft glow
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5);
       g.addColorStop(0, p.col + '22');
       g.addColorStop(1, 'transparent');
@@ -204,25 +194,34 @@ function setVal(el, text) {
 }
 
 /* ============================================================
-   FETCH
+   FETCH DATA — Updated for your Supabase keys
    ============================================================ */
 async function fetchData() {
-  const url = `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.TABLE}` +
-    `?select=*&order=created_at.desc&limit=${CONFIG.FEED_LIMIT}`;
-  const res = await fetch(url, {
-    headers: {
-      apikey: CONFIG.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  try {
+    const url = `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.TABLE}?select=*&order=created_at.desc&limit=${CONFIG.FEED_LIMIT}`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error('[SenseIQ] Fetch error:', err);
+    showToast(`Error fetching data: ${err.message}`);
+    setStatus('error');
+    return [];
+  }
 }
 
 /* ============================================================
-   KPIs
+   KPI, CHART, FEED (Same as your previous logic)
    ============================================================ */
+
 function updateKPIs(rows) {
   const total = rows.length;
   setVal(dom.total, total.toLocaleString());
@@ -244,9 +243,7 @@ function updateKPIs(rows) {
     const d     = tsRaw ? new Date(tsRaw) : null;
     if (d && !isNaN(d)) {
       setVal(dom.latestTime, d.toLocaleTimeString('en-GB', { hour12: false }));
-      dom.latestDate.textContent = d.toLocaleDateString('en-GB', {
-        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      });
+      dom.latestDate.textContent = d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
     } else {
       setVal(dom.latestTime, 'N/A');
       dom.latestDate.textContent = 'Timestamp unavailable';
@@ -273,7 +270,7 @@ function updateKPIs(rows) {
 }
 
 /* ============================================================
-   CHART
+   Chart
    ============================================================ */
 function initChart() {
   const ctx  = document.getElementById('detectionChart').getContext('2d');
@@ -302,40 +299,7 @@ function initChart() {
         fill: true,
       }],
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 400, easing: 'easeInOutQuart' },
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(10,15,35,0.95)',
-          borderColor: 'rgba(79,158,255,0.35)',
-          borderWidth: 1,
-          titleColor: '#f0f6ff',
-          bodyColor:  '#8899bb',
-          titleFont:  { family: "'JetBrains Mono'", size: 11, weight: '500' },
-          bodyFont:   { family: "'JetBrains Mono'", size: 11 },
-          padding: 12,
-          cornerRadius: 10,
-          displayColors: false,
-        },
-      },
-      scales: {
-        x: {
-          grid:  { color: 'rgba(255,255,255,0.04)', lineWidth: 1 },
-          ticks: { color: '#3a4a66', font: { family: "'JetBrains Mono'", size: 9 }, maxTicksLimit: 8, maxRotation: 0 },
-          border:{ color: 'rgba(255,255,255,0.05)' },
-        },
-        y: {
-          grid:  { color: 'rgba(255,255,255,0.04)', lineWidth: 1 },
-          ticks: { color: '#3a4a66', font: { family: "'JetBrains Mono'", size: 9 }, maxTicksLimit: 5, precision: 0 },
-          border:{ color: 'rgba(255,255,255,0.05)' },
-          beginAtZero: true,
-        },
-      },
-    },
+    options: { responsive: true, maintainAspectRatio: false },
   });
 }
 
@@ -356,16 +320,12 @@ function pushChart(rows) {
 }
 
 /* ============================================================
-   FEED
+   Feed
    ============================================================ */
 function renderFeed(rows) {
   dom.feedCount.textContent = `${rows.length} record${rows.length !== 1 ? 's' : ''}`;
-
   if (!rows.length) {
-    dom.feedList.innerHTML = `<div class="feed-empty">
-      <div class="feed-empty-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
-      No records found
-    </div>`;
+    dom.feedList.innerHTML = `<div class="feed-empty">No records found</div>`;
     return;
   }
 
@@ -395,24 +355,18 @@ function renderFeed(rows) {
 }
 
 /* ============================================================
-   REFRESH CYCLE
+   Refresh cycle
    ============================================================ */
 async function refresh() {
-  try {
-    const rows = await fetchData();
-    setStatus('online');
-    updateKPIs(rows);
-    pushChart(rows);
-    renderFeed(rows);
-  } catch (err) {
-    console.error('[SenseIQ]', err);
-    setStatus('error');
-    showToast(`Error: ${err.message}`);
-  }
+  const rows = await fetchData();
+  if (rows.length > 0) setStatus('online');
+  updateKPIs(rows);
+  pushChart(rows);
+  renderFeed(rows);
 }
 
 /* ============================================================
-   BOOT
+   Boot
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   setStatus('connecting');
